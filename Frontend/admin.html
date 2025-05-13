@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background-color: #f9f9f9;
+        }
+
+        nav {
+            background-color: #333;
+            padding: 15px 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav-buttons button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #777;
+        }
+
+        .nav-buttons button.active {
+            background-color: #04AA6D;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            display: block;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        section {
+            display: none;
+        }
+
+        section.active-section {
+            display: block;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        #bookingButton {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: teal;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #bookingButton:hover {
+            background-color: darkcyan;
+        }
+
+        section h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-buttons button {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            table th,
+            table td {
+                font-size: 14px;
+            }
+
+            #bookingButton {
+                width: 100%;
+                max-width: 250px;
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-buttons">
+            <button id="homeBtn" onclick="goHome()">Home</button>
+            <button id="messagesBtn" onclick="showSection('messages', this)">Messages</button>
+            <button id="bookingsBtn" class="active" onclick="showSection('bookings', this)">Bookings</button>
+        </div>
+    </nav>
+
+    <h1>Admin Panel</h1>
+
+    <button id="bookingButton" onclick="toggleBooking()">Enable Booking Freeze</button>
+
+    <section id="messages">
+        <h1>Welcome To Messages</h1>
+        <table id="messagesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Subject</th>
+                    <th>Message</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+    <section id="bookings" class="active-section">
+        <h1 style="text-align:center;">Welcome To Customer Bookings</h1>
+        <table id="bookingsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>WhatsApp</th>
+                    <th>Email</th>
+                    <th>Gender</th>
+                    <th>Check-In</th>
+                    <th>Check-Out</th>
+                    <th>Guests</th>
+                    <th>Tent Type</th>
+                    <th>Tent Count</th>
+                    <th>Meal Preference</th>
+                    <th>Activities</th>
+                    <th>Special Requests</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <script>
+        // Fetch messages from API
+        fetch('/api/contact')
+            .then(res => res.json())
+            .then(data => {
+                const table = document.querySelector('#messagesTable tbody');
+                data.forEach(msg => {
+                    table.innerHTML += `
+            <tr>
+              <td>${msg.id}</td>
+              <td>${msg.name}</td>
+              <td>${msg.email}</td>
+              <td>${msg.phone}</td>
+              <td>${msg.subject}</td>
+              <td>${msg.message}</td>
+              <td>${new Date(msg.created_at).toLocaleString()}</td>
+            </tr>`;
+                });
+            });
+
+        // Go to homepage
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Show selected section
+        function showSection(id, button) {
+            document.querySelectorAll("section").forEach(sec => sec.classList.remove("active-section"));
+            document.getElementById(id).classList.add("active-section");
+
+            document.querySelectorAll(".nav-buttons button").forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+        }
+
+        // Toggle booking freeze
+        function toggleBooking() {
+            const currentStatus = localStorage.getItem('bookingFrozen') === 'true';
+
+            if (!currentStatus) {
+                let tillDate = prompt("Till which date should the booking be frozen? (format: YYYY-MM-DD)");
+                if (tillDate) {
+                    localStorage.setItem('bookingFrozen', true);
+                    localStorage.setItem('freezeTillDate', tillDate);
+                    alert('Booking freeze enabled until ' + tillDate);
+                    document.getElementById('bookingButton').innerText = 'Disable Booking Freeze';
+                }
+            } else {
+                localStorage.setItem('bookingFrozen', false);
+                localStorage.removeItem('freezeTillDate');
+                alert('Booking freeze disabled. Booking is now open.');
+                document.getElementById('bookingButton').innerText = 'Enable Booking Freeze';
+            }
+        }
+
+        // On page load, set correct button text
+        window.onload = function () {
+            const currentStatus = localStorage.getItem('bookingFrozen') === 'true';
+            if (currentStatus) {
+                document.getElementById('bookingButton').innerText = 'Disable Booking Freeze';
+            } else {
+                document.getElementById('bookingButton').innerText = 'Enable Booking Freeze';
+            }
+        }
+
+        // Fetch bookings from API
+        fetch('/api/bookings')
+            .then(res => res.json())
+            .then(data => {
+                const table = document.querySelector('#bookingsTable tbody');
+                data.forEach(booking => {
+                    table.innerHTML += `
+        <tr>
+          <td>${booking.id}</td>
+          <td>${booking.full_name}</td>
+          <td>${booking.phone}</td>
+          <td>${booking.whatsapp}</td>
+          <td>${booking.email}</td>
+          <td>${booking.gender}</td>
+          <td>${booking.check_in}</td>
+          <td>${booking.check_out}</td>
+          <td>${booking.guests}</td>
+          <td>${booking.tent_type}</td>
+          <td>${booking.tent_count}</td>
+          <td>${booking.meal_preference}</td>
+          <td>${booking.activities}</td>
+          <td>${booking.special_requests}</td>
+          <td>${new Date(booking.created_at).toLocaleString()}</td>
+        </tr>`;
+                });
+            });
+
+    </script>
+
+</body>
+
+</html>
